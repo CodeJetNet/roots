@@ -1,0 +1,42 @@
+{ "name": "codejet/roots",
+    "type": "framework",
+    "description": "Roots",
+    "keywords": [
+        "CodeJet",
+        "Roots"
+    ],
+    "homepage": "https://github.com/CodeJetNet/Roots",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Josh Houghtelin",
+            "email": "josh@findsomehelp.com",
+            "homepage": "http://www.burnmytime.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "~5.5|~7.0",
+        "league/route": "^2.0",
+        "zendframework/zend-diactoros": "^1.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.0||~5.0",
+        "scrutinizer/ocular": "~1.1",
+        "squizlabs/php_codesniffer": "~2.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "CodeJet\\Roots\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "CodeJet\\Roots\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "phpcs": "vendor/bin/phpcs --standard=psr2 src/"
+    }
+}
