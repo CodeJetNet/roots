@@ -62,7 +62,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ->with($this->isInstanceOf(\Psr\Http\Message\ResponseInterface::class));
 
         $container = new Container();
-        $container->share('emitter',$mockEmitter);
+        $container->share('emitter', $mockEmitter);
 
         $app = new Application($container);
 
@@ -71,6 +71,60 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         });
 
         $app->outputResponse();
+    }
+
+    /**
+     * Testing with the Guzzle PSR7 Response Implementation
+     *
+     * Roots defaults to using the Zend\Diactoros PSR7 Response implementation
+     * but it should work with any response implementation.
+     */
+    public function testGuzzlePSR7ResponseImplementation()
+    {
+        $container = new Container();
+        $container->share('response', new \GuzzleHttp\Psr7\Response());
+
+        $expectedOutputText = "body output text.";
+
+        $app = new Application($container);
+        $app->addRoute('GET', '/', function ($req, $resp) use ($expectedOutputText) {
+            $resp->getBody()->write($expectedOutputText);
+        });
+
+        $appResponse = $app->getResponse();
+
+        $this->assertInstanceOf(\GuzzleHttp\Psr7\Response::class, $appResponse);
+        $this->assertSame($expectedOutputText, (string)$appResponse->getBody());
+    }
+
+    /**
+     * Testing with the Guzzle PSR7 ServerRequest Implementation
+     *
+     * Roots defaults to the Zend\Diactoros PSR7 implementation but it should
+     * work with any compatible implementation.
+     */
+    public function testGuzzlePSR7ServerRequestImplementation()
+    {
+        $container = new Container();
+        $container->share('request',new \GuzzleHttp\Psr7\ServerRequest(
+            'GET',
+            'http://www.example.com/testpath',
+            [],
+            '',
+            '1.1',
+            $_SERVER
+        ));
+
+        $expectedOutputText = "body output text.";
+
+        $app = new Application($container);
+        $app->addRoute('GET', '/testpath', function ($req, $resp) use ($expectedOutputText) {
+            $resp->getBody()->write($expectedOutputText);
+        });
+
+        $appResponse = $app->getResponse();
+
+        $this->assertSame($expectedOutputText, (string)$appResponse->getBody());
     }
 
     protected function getApplication()
