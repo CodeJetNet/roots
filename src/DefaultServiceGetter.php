@@ -12,7 +12,10 @@ trait DefaultServiceGetter
     {
         if (!$this->container->has('middlewareStack')) {
             $this->container->share('middlewareStack', [
-                new \Middlewares\ResponseTime()
+                new \Middlewares\ResponseTime(),
+                new \Middlewares\CssMinifier(),
+                new \Middlewares\JsMinifier(),
+                new \Middlewares\HtmlMinifier(),
             ]);
         }
 
