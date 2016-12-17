@@ -1,6 +1,10 @@
-# Roots - A Purely PSR Friendly Framework #
+# Roots - A PSR Friendly Framework #
 [![Build Status](https://travis-ci.org/CodeJetNet/roots.svg)](https://travis-ci.org/CodeJetNet/roots)
 [![License](https://poser.pugx.org/codejet/roots/license.svg)](https://packagist.org/packages/codejet/roots)
+
+## PSR ##
+
+This Project adheres to [PSR2][link-psr2], [PSR4][link-psr4] & [PSR7][link-psr7]
 
 ## Tests
 
@@ -19,3 +23,7 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Roots framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
+
+[link-psr2]: https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md
+[link-psr4]: https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md
+[link-psr7]: https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-7-http-message.md
