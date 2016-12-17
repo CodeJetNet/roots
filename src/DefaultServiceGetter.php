@@ -8,8 +8,19 @@ namespace CodeJet\Roots;
 
 trait DefaultServiceGetter
 {
+    public function getMiddlewareStack()
+    {
+        if (!$this->container->has('middlewareStack')) {
+            $this->container->share('middlewareStack', [
+                new \Middlewares\ResponseTime()
+            ]);
+        }
+
+        return $this->container->get('middlewareStack');
+    }
+
     /**
-     * @return \League\Route\RouteCollectionInterface
+     * @return \League\Route\RouteCollection
      */
     public function getRouter()
     {

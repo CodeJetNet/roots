@@ -2,6 +2,7 @@
 
 namespace CodeJet\Roots;
 
+use Equip\Dispatch\MiddlewarePipe;
 use League\Container\ContainerInterface;
 
 class Application
@@ -17,7 +18,7 @@ class Application
     {
         $this->container = $container;
 
-        // Now... to bootstrap the app with configuration..
+        // Bootstrap the app with configuration..
         // Middleware, Routes, Services, etc...
     }
 
@@ -40,12 +41,23 @@ class Application
      */
     public function getResponse()
     {
-        $response = $this->getRouter()->dispatch(
-            $this->getPsrRequest(),
+        $routerMiddleware = new RouterMiddlewarinator(
+            $this->getRouter(),
             $this->getPsrResponse()
         );
 
-        return $response;
+        $middleware = $this->getMiddlewareStack();
+
+        array_push($middleware, $routerMiddleware);
+
+        $pipe = new MiddlewarePipe($middleware);
+
+        return $pipe->dispatch(
+            $this->getPsrRequest(),
+            function () {
+                throw new \Exception('Our tree has no leaves.. and subsequently died from lack of middleware.');
+            }
+        );
     }
 
     /**
