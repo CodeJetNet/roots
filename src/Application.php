@@ -3,7 +3,7 @@
 namespace CodeJet\Roots;
 
 use Equip\Dispatch\MiddlewarePipe;
-use League\Container\ContainerInterface;
+use Interop\Container\ContainerInterface;
 
 class Application
 {

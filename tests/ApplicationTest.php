@@ -2,15 +2,49 @@
 
 namespace CodeJet\Roots;
 
-use League\Container\Container;
+use CodeJet\Bucket\Bucket as Container;
+use League\Route\RouteCollection;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\RequestInterface as Request;
 
 class ApplicationTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * The container 'must' be configured with a 'router' item before passing
+     * it to the application otherwise it will throw an ApplicationException.
+     *
+     * @expectedException \CodeJet\Roots\Exception\ApplicationException
+     */
+    public function testContainerMustHaveARouter()
+    {
+        $emptyContainer = new Container();
+        $app = new Application($emptyContainer);
+        $app->outputResponse();
+    }
+
+    /**
+     * @expectedException \CodeJet\Roots\Exception\ApplicationException
+     */
+    public function testMiddlewareStackMustBeAnArray()
+    {
+        $router = new RouteCollection();
+        $router->addRoute('GET', '/', function (Request $req, Response $resp) {
+            return $resp;
+        });
+
+        $container = new Container();
+        $container->add('router', $router);
+        $container->add('middlewareStack','some-non-array-value');
+
+        $app = new Application($container);
+        $app->getResponse();
+    }
+
     public function testAddRouteReturnsRoute()
     {
         $app = $this->getApplication();
 
-        $route = $app->addRoute('GET', '/', function ($req, $resp) {
+        $route = $app->addRoute('GET', '/', function (Request $req, Response $resp) {
             return $resp;
         });
 
@@ -20,7 +54,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testResponseIsPSRResponseInterface()
     {
         $app = $this->getApplication();
-        $app->addRoute('GET', '/', function ($req, $resp) {
+
+        $app->addRoute('GET', '/', function (Request $req, Response $resp) {
             return $resp;
         });
 
@@ -37,7 +72,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testResponseOutputBodyContentFailsHeaderAlreadySent()
     {
         $app = $this->getApplication();
-        $app->addRoute('GET', '/', function ($req, $resp) {
+
+        $app->addRoute('GET', '/', function (Request $req, Response $resp) {
             $resp->getBody()->write('This will surely fail.');
         });
 
@@ -49,8 +85,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testResponseGetsPassedToEmitter()
     {
-        $expectedOutputText = "body output text.";
-
         $mockEmitter = $this->getMockBuilder(\Zend\Diactoros\Response\SapiEmitter::class)
                             ->setMethods(['emit'])
                             ->disableOriginalConstructor()
@@ -62,12 +96,13 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ->with($this->isInstanceOf(\Psr\Http\Message\ResponseInterface::class));
 
         $container = new Container();
-        $container->share('emitter', $mockEmitter);
+        $container->add('emitter', $mockEmitter);
+        $container->add('router', new \League\Route\RouteCollection());
 
         $app = new Application($container);
 
-        $app->addRoute('GET', '/', function ($req, $resp) use ($expectedOutputText) {
-            $resp->getBody()->write($expectedOutputText);
+        $app->addRoute('GET', '/', function (Request $req, Response $resp) {
+            $resp->getBody()->write('non-consequential body text.');
         });
 
         $app->outputResponse();
@@ -82,7 +117,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testGuzzlePSR7ResponseImplementation()
     {
         $container = new Container();
-        $container->share('response', new \GuzzleHttp\Psr7\Response());
+        $container->add('router', new \League\Route\RouteCollection());
+        $container->add('response', new \GuzzleHttp\Psr7\Response());
 
         $expectedOutputText = "body output text.";
 
@@ -106,7 +142,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testGuzzlePSR7ServerRequestImplementation()
     {
         $container = new Container();
-        $container->share('request',new \GuzzleHttp\Psr7\ServerRequest(
+        $container->add('router', new \League\Route\RouteCollection());
+        $container->add('request', new \GuzzleHttp\Psr7\ServerRequest(
             'GET',
             'http://www.example.com/testpath',
             [],
@@ -130,6 +167,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     protected function getApplication()
     {
         $container = new Container;
+        $container->add('router', new \League\Route\RouteCollection());
 
         return new Application($container);
     }

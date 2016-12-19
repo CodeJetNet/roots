@@ -6,27 +6,37 @@
 
 namespace CodeJet\Roots;
 
+use CodeJet\Roots\Exception\ApplicationException;
+
 trait DefaultServiceGetter
 {
+    /**
+     * @return array
+     * @throws ApplicationException
+     */
     public function getMiddlewareStack()
     {
         if (!$this->container->has('middlewareStack')) {
-            $this->container->share('middlewareStack', [
-                new \Middlewares\ResponseTime()
-            ]);
+            return [];
         }
 
-        return $this->container->get('middlewareStack');
+        $middlewareStack = $this->container->get('middlewareStack');
+
+        if (!is_array($middlewareStack)) {
+            throw new ApplicationException('The Middleware Stack must be an array.');
+        }
+
+        return $middlewareStack;
     }
 
     /**
      * @return \League\Route\RouteCollection
+     * @throws ApplicationException
      */
     public function getRouter()
     {
         if (!$this->container->has('router')) {
-            $router = new \League\Route\RouteCollection($this->container);
-            $this->container->share('router', $router);
+            throw new ApplicationException('A Router must be provided.');
         }
 
         return $this->container->get('router');
@@ -38,7 +48,7 @@ trait DefaultServiceGetter
     public function getEmitter()
     {
         if (!$this->container->has('emitter')) {
-            $this->container->share('emitter', \Zend\Diactoros\Response\SapiEmitter::class);
+            return new \Zend\Diactoros\Response\SapiEmitter();
         }
 
         return $this->container->get('emitter');
@@ -50,15 +60,7 @@ trait DefaultServiceGetter
     public function getPsrRequest()
     {
         if (!$this->container->has('request')) {
-            $this->container->share('request', function () {
-                return \Zend\Diactoros\ServerRequestFactory::fromGlobals(
-                    $_SERVER,
-                    $_GET,
-                    $_POST,
-                    $_COOKIE,
-                    $_FILES
-                );
-            });
+            return \Zend\Diactoros\ServerRequestFactory::fromGlobals();
         }
 
         return $this->container->get('request');
@@ -70,7 +72,7 @@ trait DefaultServiceGetter
     public function getPsrResponse()
     {
         if (!$this->container->has('response')) {
-            $this->container->share('response', \Zend\Diactoros\Response::class);
+            return new \Zend\Diactoros\Response();
         }
 
         return $this->container->get('response');
